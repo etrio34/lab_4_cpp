@@ -10,7 +10,6 @@
 #include <vector>
 #include "data.h"
 
-
 enum class OpType : std::uint8_t { Read, Write, String };
 
 struct Op {
@@ -51,14 +50,11 @@ std::vector<Op> loadOps(const std::string& path, std::size_t expected = 0) {
     return ops;
 }
 
-std::vector<std::vector<Op>> loadProfile(const std::string& profile,
-                                         int threads,
-                                         std::size_t totalOps)
+std::vector<std::vector<Op>> loadProfile(const std::string& profile,int threads, std::size_t totalOps)
 {
     std::vector<std::vector<Op>> result;
     for (int t = 0; t < threads; ++t) {
-        std::string path = profile + "_t" + std::to_string(threads) +
-                           "_" + std::to_string(t) + ".txt";
+        std::string path = profile + "_t" + std::to_string(threads) + "_" + std::to_string(t) + ".txt";
         result.push_back(loadOps(path, totalOps / threads));
     }
     return result;
@@ -95,8 +91,7 @@ double runOnce(const std::vector<std::vector<Op>>& ops, long long& checksum) {
     auto start = std::chrono::steady_clock::now();
 
     for (std::size_t t = 0; t < n; ++t) {
-        threads.emplace_back(worker, std::ref(data),
-                             std::cref(ops[t]), std::ref(sinks[t]));
+        threads.emplace_back(worker, std::ref(data), std::cref(ops[t]), std::ref(sinks[t]));
     }
     for (auto& th : threads) {
         th.join();
@@ -107,12 +102,11 @@ double runOnce(const std::vector<std::vector<Op>>& ops, long long& checksum) {
     checksum = 0;
     for (long long s : sinks) checksum += s;
 
-    return std::chrono::duration<double>(end - start).count();   // секунди
+    return std::chrono::duration<double>(end - start).count();
 }
 
-// Один прогрівальний запуск + кілька вимірюваних, повертає середнє.
 double measure(const std::vector<std::vector<Op>>& ops, int runs, long long& checksum) {
-    runOnce(ops, checksum);                      // прогрів, результат ігноруємо
+    runOnce(ops, checksum);
     double total = 0;
     for (int i = 0; i < runs; ++i) {
         total += runOnce(ops, checksum);
@@ -135,10 +129,7 @@ int main() {
             double avg = measure(ops, runs, checksum);
             table[p][threads - 1] = avg;
 
-            std::cout << "profile " << profiles[p]
-                      << ", threads " << threads
-                      << ": " << std::fixed << std::setprecision(4)
-                      << avg << " s (checksum " << checksum << ")\n";
+            std::cout << "profile " << profiles[p] << ", threads " << threads << ": " << std::fixed << std::setprecision(4) << avg << " s (checksum " << checksum << ")\n";
         }
     }
 
@@ -147,8 +138,7 @@ int main() {
     for (int p = 0; p < 3; ++p) {
         std::cout << std::setw(7) << profiles[p] << " |";
         for (int t = 0; t < 3; ++t) {
-            std::cout << std::setw(11) << std::fixed << std::setprecision(4)
-                      << table[p][t] << " |";
+            std::cout << std::setw(11) << std::fixed << std::setprecision(4) << table[p][t] << " |";
         }
         std::cout << "\n";
     }
